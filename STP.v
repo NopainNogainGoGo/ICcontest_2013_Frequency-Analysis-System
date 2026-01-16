@@ -2,12 +2,12 @@ module STP(
     input CLK, RST, fir_valid, 
     input signed [15:0] fir_d,
     output reg stp_valid,
-    output reg [31:0] in_d0, in_d1, in_d2, in_d3, in_d4, in_d5, in_d6, in_d7,
-    output reg [31:0] in_d8, in_d9, in_d10, in_d11, in_d12, in_d13, in_d14, in_d15
+    output reg signed [31:0] in_d0, in_d1, in_d2, in_d3, in_d4, in_d5, in_d6, in_d7,
+    output reg signed [31:0] in_d8, in_d9, in_d10, in_d11, in_d12, in_d13, in_d14, in_d15
 );
 
     reg [3:0] cnt;
-    reg [31:0] buf_data [0:15]; // 內部 Buffer
+    reg signed [31:0]  buf_data [0:15]; // 內部 Buffer
 
     // cnt
     always @(posedge CLK or posedge RST) begin
@@ -30,10 +30,10 @@ module STP(
     end
 
 
-    // 串列存入 Buffer (虛部補 0)
+    // 串列存入 Buffer (sign extend)
     always @(posedge CLK) begin
         if (fir_valid)
-            buf_data[cnt] <= {fir_d, 16'd0}; 
+            buf_data[cnt] <= {{16{fir_d[15]}},fir_d}; 
     end
 
 
@@ -56,8 +56,7 @@ module STP(
             in_d8  <= buf_data[8];  in_d9  <= buf_data[9];
             in_d10 <= buf_data[10]; in_d11 <= buf_data[11];
             in_d12 <= buf_data[12]; in_d13 <= buf_data[13];
-            in_d14 <= buf_data[14]; in_d15 <= {fir_d, 16'd0}; // 最後一筆直接 bypass
+            in_d14 <= buf_data[14]; in_d15 <= {{16{fir_d[15]}},fir_d}; // 最後一筆直接 bypass
         end
     end
 endmodule
-
