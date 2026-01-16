@@ -9,8 +9,6 @@ module FFT(
 );
     `include "Real_Value_Ref.dat"
     `include "Imag_Value_Ref.dat"
-
-    reg signed [31:0] fir_y [15:0];
         
     // =========================================================
     //  Stage 1 - Combinational Logic (Stride=8)
@@ -259,3 +257,4 @@ module FFT(
     end
 
 endmodule
+
