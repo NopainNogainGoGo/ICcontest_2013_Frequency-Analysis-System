@@ -36,54 +36,92 @@ module Analysis(
         end
     end
 
-    // =========================================================
-    // Delay Logic
-    // 因為 power 計算是 Sequential Logic，需要 1 個 cycle 的時間，
-    // 所以把 valid 訊號也延遲 1 個 cycle，這樣才能拿到算好的 power
-    // =========================================================
-    reg valid_d1;
-
-    always @(posedge CLK or posedge RST) begin
-        if (RST) valid_d1 <= 0;
-        else valid_d1 <= fft_valid;
-    end
 
     // =========================================================
     // Find Maximum
     // 比較 16 個 power 值，找出最大
     // =========================================================
-    reg [31:0] max_val;
-    reg [3:0]  max_idx;
-    reg [3:0]  cnt;
+    wire [31:0] max_val;
+    wire [3:0]  max_idx;
 
-    // cnt
-    always @(posedge CLK or posedge RST) begin
-        if (RST) cnt <= 0;
-        else if (valid_d1) cnt <= cnt + 1;
-    end
+    // =========================================================
+    // Stage 1: 16 -> 8
+    // =========================================================
+    wire [31:0] v1_0, v1_1, v1_2, v1_3, v1_4, v1_5, v1_6, v1_7;
+    wire [3:0]  i1_0, i1_1, i1_2, i1_3, i1_4, i1_5, i1_6, i1_7;
+
+    assign {v1_0, i1_0} = (power[0]  >= power[1])  ? {power[0],  4'd0}  : {power[1],  4'd1};
+    assign {v1_1, i1_1} = (power[2]  >= power[3])  ? {power[2],  4'd2}  : {power[3],  4'd3};
+    assign {v1_2, i1_2} = (power[4]  >= power[5])  ? {power[4],  4'd4}  : {power[5],  4'd5};
+    assign {v1_3, i1_3} = (power[6]  >= power[7])  ? {power[6],  4'd6}  : {power[7],  4'd7};
+    assign {v1_4, i1_4} = (power[8]  >= power[9])  ? {power[8],  4'd8}  : {power[9],  4'd9};
+    assign {v1_5, i1_5} = (power[10] >= power[11]) ? {power[10], 4'd10} : {power[11], 4'd11};
+    assign {v1_6, i1_6} = (power[12] >= power[13]) ? {power[12], 4'd12} : {power[13], 4'd13};
+    assign {v1_7, i1_7} = (power[14] >= power[15]) ? {power[14], 4'd14} : {power[15], 4'd15};
+
+    // =========================================================
+    // Stage 2: 8 -> 4
+    // =========================================================
+    wire [31:0] v2_0, v2_1, v2_2, v2_3;
+    wire [3:0]  i2_0, i2_1, i2_2, i2_3;
+
+    assign {v2_0, i2_0} = (v1_0 >= v1_1) ? {v1_0, i1_0} : {v1_1, i1_1};
+    assign {v2_1, i2_1} = (v1_2 >= v1_3) ? {v1_2, i1_2} : {v1_3, i1_3};
+    assign {v2_2, i2_2} = (v1_4 >= v1_5) ? {v1_4, i1_4} : {v1_5, i1_5};
+    assign {v2_3, i2_3} = (v1_6 >= v1_7) ? {v1_6, i1_6} : {v1_7, i1_7};
+
+    // =========================================================
+    // Stage 3: 4 -> 2
+    // =========================================================
+    wire [31:0] v3_0, v3_1;
+    wire [3:0]  i3_0, i3_1;
+
+    assign {v3_0, i3_0} = (v2_0 >= v2_1) ? {v2_0, i2_0} : {v2_1, i2_1};
+    assign {v3_1, i3_1} = (v2_2 >= v2_3) ? {v2_2, i2_2} : {v2_3, i2_3};
+
+    // =========================================================
+    // Stage 4: 2 -> 1 (Final Result)
+    // =========================================================
+    assign {max_val, max_idx} = (v3_0 >= v3_1) ? {v3_0, i3_0} : {v3_1, i3_1};
+
+
+    // =========================================================
+    // Pipeline Control: 延遲 fft_valid 訊號
+    // =========================================================
+    reg valid_d1; // 代表 power 暫存器已更新
+    reg valid_d2; // 代表 freq 暫存器可以抓取比較結果
 
     always @(posedge CLK or posedge RST) begin
         if (RST) begin
-            max_val <= power[0];
-            max_idx <= 0;
-        end
-        else if (power[cnt] > max_val) begin
-            max_val <= power[cnt];
-            max_idx <= cnt;
+            valid_d1 <= 1'b0;
+            valid_d2 <= 1'b0;
+        end else begin
+            valid_d1 <= fft_valid; // 延遲 1 拍，與 power[] 同步
+            valid_d2 <= valid_d1;  // 延遲 2 拍，用於觸發最終結果
         end
     end
 
-    // freq
+    // =========================================================
+    // freq 輸出邏輯
+    // =========================================================
     always @(posedge CLK or posedge RST) begin
-        if (RST) freq <= 0;
-        else if (cnt == 15) freq <= max_idx;
+        if (RST) 
+            freq <= 4'd0;
+        else if (valid_d2) // 當 power 資料準備好時，下一拍存入 freq
+            freq <= max_idx;
     end
 
-    // done
+    // =========================================================
+    // done 輸出邏輯 (產生一個週期的脈衝)
+    // =========================================================
     always @(posedge CLK or posedge RST) begin
-        if (RST) done <= 0;
-        else if (cnt ==15) done <= 1;
-        else done <= 0;
+        if (RST) 
+            done <= 1'b0;
+        else if (valid_d2) // 與 freq 同時更新，或是根據需求延後一拍
+            done <= 1'b1;
+        else 
+            done <= 1'b0;
     end
 
 endmodule
+
