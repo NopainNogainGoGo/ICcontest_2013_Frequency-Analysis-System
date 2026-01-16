@@ -1,0 +1,8 @@
+parameter signed [31:0] Wi0 = 00000000      //The imag part of the reference table about COS(x)+i*SIN(x) value , 0: 000
+parameter signed [31:0] Wi1 = FFFF9E09      //The imag part of the reference table about COS(x)+i*SIN(x) value , 1: -3.826752e-001
+parameter signed [31:0] Wi2 = FFFF4AFC      //The imag part of the reference table about COS(x)+i*SIN(x) value , 2: -7.070923e-001
+parameter signed [31:0] Wi3 = FFFF137D      //The imag part of the reference table about COS(x)+i*SIN(x) value , 3: -9.238739e-001
+parameter signed [31:0] Wi4 = FFFF0000      //The imag part of the reference table about COS(x)+i*SIN(x) value , 4: -01
+parameter signed [31:0] Wi5 = FFFF137D      //The imag part of the reference table about COS(x)+i*SIN(x) value , 5: -9.238739e-001
+parameter signed [31:0] Wi6 = FFFF4AFC      //The imag part of the reference table about COS(x)+i*SIN(x) value , 6: -7.070923e-001
+parameter signed [31:0] Wi7 = FFFF9E09      //The imag part of the reference table about COS(x)+i*SIN(x) value , 7: -3.826752e-001
