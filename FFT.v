@@ -20,7 +20,7 @@ module FFT(
     // -------------------------
     // 上半部: A + B
     // real = (A + B), image = 0
-    // Use <<< 8 instead of concatenation to preserve Sign Bit (Sign Extension)
+    // Use <<< 8 to preserve Sign Bit (Sign Extension)
     // -------------------------
     assign stage1_real[0] = ($signed(in_d0 [31:16]) + $signed(in_d8 [31:16])) <<< 8;
     assign stage1_real[1] = ($signed(in_d1 [31:16]) + $signed(in_d9 [31:16])) <<< 8;
@@ -257,4 +257,5 @@ module FFT(
     end
 
 endmodule
+
 
