@@ -4,7 +4,7 @@ TOP_TB = testfixture1.v
 FILELIST = file.f
 SIMV = simv
 
-# 編譯參數 (根據你的指令)
+# 編譯參數 
 VCS_FLAGS = -full64 \
             -R \
             -debug_access+all \
