@@ -20,16 +20,15 @@ module FFT(
     // -------------------------
     // 上半部: A + B
     // real = (A + B), image = 0
-    // Use <<< 8 to preserve Sign Bit (Sign Extension)
     // -------------------------
-    assign stage1_real[0] = ($signed(in_d0 [31:16]) + $signed(in_d8 [31:16])) <<< 8;
-    assign stage1_real[1] = ($signed(in_d1 [31:16]) + $signed(in_d9 [31:16])) <<< 8;
-    assign stage1_real[2] = ($signed(in_d2 [31:16]) + $signed(in_d10[31:16])) <<< 8;
-    assign stage1_real[3] = ($signed(in_d3 [31:16]) + $signed(in_d11[31:16])) <<< 8;
-    assign stage1_real[4] = ($signed(in_d4 [31:16]) + $signed(in_d12[31:16])) <<< 8;
-    assign stage1_real[5] = ($signed(in_d5 [31:16]) + $signed(in_d13[31:16])) <<< 8;
-    assign stage1_real[6] = ($signed(in_d6 [31:16]) + $signed(in_d14[31:16])) <<< 8;
-    assign stage1_real[7] = ($signed(in_d7 [31:16]) + $signed(in_d15[31:16])) <<< 8;
+    assign stage1_real[0] = (in_d0 + in_d8 ) <<< 8;
+    assign stage1_real[1] = (in_d1 + in_d9 ) <<< 8;
+    assign stage1_real[2] = (in_d2 + in_d10) <<< 8;
+    assign stage1_real[3] = (in_d3 + in_d11) <<< 8;
+    assign stage1_real[4] = (in_d4 + in_d12) <<< 8;
+    assign stage1_real[5] = (in_d5 + in_d13) <<< 8;
+    assign stage1_real[6] = (in_d6 + in_d14) <<< 8;
+    assign stage1_real[7] = (in_d7 + in_d15) <<< 8;
 
     assign stage1_image[0] = 33'sd0;
     assign stage1_image[1] = 33'sd0;
@@ -56,23 +55,23 @@ module FFT(
     These 32-bit parameters use 8 bits to represent the fractional part 
     (meaning 1.0 is stored as 2^8 = 256), multiplying by them effectively shifts your data left by 8 bits.
 */
-    assign stage1_real[8]  = (($signed(in_d0 [31:16]) - $signed(in_d8 [31:16]))  * Wr0) >>> 8;
-    assign stage1_real[9]  = (($signed(in_d1 [31:16]) - $signed(in_d9 [31:16]))  * Wr1) >>> 8;
-    assign stage1_real[10] = (($signed(in_d2 [31:16]) - $signed(in_d10[31:16])) * Wr2) >>> 8;
-    assign stage1_real[11] = (($signed(in_d3 [31:16]) - $signed(in_d11[31:16])) * Wr3) >>> 8;
-    assign stage1_real[12] = (($signed(in_d4 [31:16]) - $signed(in_d12[31:16])) * Wr4) >>> 8;
-    assign stage1_real[13] = (($signed(in_d5 [31:16]) - $signed(in_d13[31:16])) * Wr5) >>> 8;
-    assign stage1_real[14] = (($signed(in_d6 [31:16]) - $signed(in_d14[31:16])) * Wr6) >>> 8;
-    assign stage1_real[15] = (($signed(in_d7 [31:16]) - $signed(in_d15[31:16])) * Wr7) >>> 8;
+    assign stage1_real[8]  = ((in_d0 - in_d8 )  * Wr0) >>> 8;
+    assign stage1_real[9]  = ((in_d1 - in_d9 )  * Wr1) >>> 8;
+    assign stage1_real[10] = ((in_d2 - in_d10) * Wr2) >>> 8;
+    assign stage1_real[11] = ((in_d3 - in_d11) * Wr3) >>> 8;
+    assign stage1_real[12] = ((in_d4 - in_d12) * Wr4) >>> 8;
+    assign stage1_real[13] = ((in_d5 - in_d13) * Wr5) >>> 8;
+    assign stage1_real[14] = ((in_d6 - in_d14) * Wr6) >>> 8;
+    assign stage1_real[15] = ((in_d7 - in_d15) * Wr7) >>> 8;
 
-    assign stage1_image[8]  = (($signed(in_d0 [31:16]) - $signed(in_d8 [31:16]))  * Wi0) >>> 8;
-    assign stage1_image[9]  = (($signed(in_d1 [31:16]) - $signed(in_d9 [31:16]))  * Wi1) >>> 8;
-    assign stage1_image[10] = (($signed(in_d2 [31:16]) - $signed(in_d10[31:16])) * Wi2) >>> 8;
-    assign stage1_image[11] = (($signed(in_d3 [31:16]) - $signed(in_d11[31:16])) * Wi3) >>> 8;
-    assign stage1_image[12] = (($signed(in_d4 [31:16]) - $signed(in_d12[31:16])) * Wi4) >>> 8;
-    assign stage1_image[13] = (($signed(in_d5 [31:16]) - $signed(in_d13[31:16])) * Wi5) >>> 8;
-    assign stage1_image[14] = (($signed(in_d6 [31:16]) - $signed(in_d14[31:16])) * Wi6) >>> 8;
-    assign stage1_image[15] = (($signed(in_d7 [31:16]) - $signed(in_d15[31:16])) * Wi7) >>> 8;
+    assign stage1_image[8]  = ((in_d0 -in_d8 )  * Wi0) >>> 8;
+    assign stage1_image[9]  = ((in_d1 -in_d9 )  * Wi1) >>> 8;
+    assign stage1_image[10] = ((in_d2 -in_d10) * Wi2) >>> 8;
+    assign stage1_image[11] = ((in_d3 -in_d11) * Wi3) >>> 8;
+    assign stage1_image[12] = ((in_d4 -in_d12) * Wi4) >>> 8;
+    assign stage1_image[13] = ((in_d5 -in_d13) * Wi5) >>> 8;
+    assign stage1_image[14] = ((in_d6 -in_d14) * Wi6) >>> 8;
+    assign stage1_image[15] = ((in_d7 -in_d15) * Wi7) >>> 8;
 
 
 
