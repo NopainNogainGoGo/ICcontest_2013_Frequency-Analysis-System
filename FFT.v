@@ -1,7 +1,7 @@
 module FFT(
     input CLK, RST, stp_valid,
-    input [31:0] in_d0, in_d1, in_d2, in_d3, in_d4, in_d5, in_d6, in_d7,
-    input [31:0] in_d8, in_d9, in_d10, in_d11, in_d12, in_d13, in_d14, in_d15,
+    input signed [31:0] in_d0, in_d1, in_d2, in_d3, in_d4, in_d5, in_d6, in_d7,
+    input signed [31:0] in_d8, in_d9, in_d10, in_d11, in_d12, in_d13, in_d14, in_d15,
 
     output reg fft_valid,
     output [31:0] fft_d0, fft_d1, fft_d2, fft_d3, fft_d4, fft_d5, fft_d6, fft_d7,
@@ -44,6 +44,18 @@ module FFT(
     // 下半部: (A - B) * W
     // real = (A-B)*Wr , image = (A-B)*Wi
     // -------------------------
+/*
+    In Verilog, as soon as you take a slice of a vector (like in_d0[31:16]), 
+    the resulting expression is always treated as unsigned, regardless of whether the original variable was declared as signed.
+    Original Variable: in_d0 (Signed)
+    Sliced Part: in_d0[31:16] (Unsigned by Verilog standards)
+    Because you are extracting the high 16 bits to separate the Real part, 
+    Verilog "forgets" the sign bit of that sub-section during the calculation.
+
+
+    These 32-bit parameters use 8 bits to represent the fractional part 
+    (meaning 1.0 is stored as 2^8 = 256), multiplying by them effectively shifts your data left by 8 bits.
+*/
     assign stage1_real[8]  = (($signed(in_d0 [31:16]) - $signed(in_d8 [31:16]))  * Wr0) >>> 8;
     assign stage1_real[9]  = (($signed(in_d1 [31:16]) - $signed(in_d9 [31:16]))  * Wr1) >>> 8;
     assign stage1_real[10] = (($signed(in_d2 [31:16]) - $signed(in_d10[31:16])) * Wr2) >>> 8;
@@ -61,6 +73,7 @@ module FFT(
     assign stage1_image[13] = (($signed(in_d5 [31:16]) - $signed(in_d13[31:16])) * Wi5) >>> 8;
     assign stage1_image[14] = (($signed(in_d6 [31:16]) - $signed(in_d14[31:16])) * Wi6) >>> 8;
     assign stage1_image[15] = (($signed(in_d7 [31:16]) - $signed(in_d15[31:16])) * Wi7) >>> 8;
+
 
 
 
@@ -257,5 +270,3 @@ module FFT(
     end
 
 endmodule
-
-
